@@ -1,8 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import {View,Text,TouchableOpacity,ScrollView,Image,Linking} from 'react-native';
-import axios from 'axios';
-import { Calendar, ChevronLeft, ChevronRight, Video } from 'lucide-react-native';
+import React from 'react';
+import { View,Text,ScrollView,TouchableOpacity, SafeAreaView} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Coffee, Sun, Moon, Dumbbell, Clock, Flame, Play } from 'lucide-react-native';
 import styles from '../styles/PlanStyles';
+
+// Types
+type DailyPlan = { 
+  date: string;
+  meals: {
+    breakfast: { name: string; calories: number; category: string };
+    lunch: { name: string; calories: number; category: string };
+    dinner: { name: string; calories: number; category: string };
+  };
+  exercises: Exercise[];
+};
 
 type Meal = {
   id: string;
@@ -29,197 +40,215 @@ type Exercise = {
   category: string;
 };
 
-type DailyPlan = {
-  date: string;
-  meals: {
-    breakfast: { name: string; calories: number; category: string };
-    lunch: { name: string; calories: number; category: string };
-    dinner: { name: string; calories: number; category: string };
-  };
-  exercises: Exercise[];
-};
+// Components
+const MealCard = ({ type, name, calories, category, icon: Icon, color }: any) => (
+  <TouchableOpacity style={[styles.mealCard, { borderLeftColor: color }]}>
+    <View style={styles.mealCardContent}>
+      <View style={styles.mealCardHeader}>
+        <Icon size={20} color={color} />
+        <Text style={[styles.mealType, { color }]}>{type}</Text>
+      </View>
+      <Text style={styles.mealName}>{name}</Text>
+      <View style={styles.mealDetails}>
+        <Text style={styles.mealCalories}>{calories} kcal</Text>
+        <View style={[styles.mealCategory, { backgroundColor: `${color}20` }]}>
+          <Text style={[styles.mealCategoryText, { color }]}>{category}</Text>
+        </View>
+      </View>
+    </View>
+  </TouchableOpacity>
+);
 
-const Plan: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'plan' | 'meals' | 'exercises'>('plan');
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [dailyPlans, setDailyPlans] = useState<DailyPlan[]>([]);
-  const [recommendedMeals, setRecommendedMeals] = useState<Meal[]>([]);
-  const [recommendedExercises, setRecommendedExercises] = useState<Exercise[]>([]);
+const RecipeCard = ({ name, time, difficulty, calories, image }: any) => (
+  <TouchableOpacity style={styles.recipeCard}>
+    <View style={styles.recipeImageContainer}>
+      <View style={[styles.recipeImage, { backgroundColor: '#E5E7EB' }]} />
+    </View>
+    <View style={styles.recipeInfo}>
+      <Text style={styles.recipeName}>{name}</Text>
+      <View style={styles.recipeDetails}>
+        <View style={styles.recipeDetail}>
+          <Clock size={14} color="#6B7280" />
+          <Text style={styles.recipeDetailText}>{time}</Text>
+        </View>
+        <View style={styles.recipeDetail}>
+          <Flame size={14} color="#6B7280" />
+          <Text style={styles.recipeDetailText}>{calories} kcal</Text>
+        </View>
+      </View>
+      <View style={[styles.recipeDifficulty, { 
+        backgroundColor: difficulty === 'Fácil' ? '#D1FAE5' : 
+                        difficulty === 'Medio' ? '#FEF3C7' : '#FEE2E2'
+      }]}>
+        <Text style={[styles.recipeDifficultyText, { 
+          color: difficulty === 'Fácil' ? '#065F46' : 
+                difficulty === 'Medio' ? '#92400E' : '#991B1B'
+        }]}>{difficulty}</Text>
+      </View>
+    </View>
+  </TouchableOpacity>
+);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const plansResponse = await axios.get('http://192.168.1.19:5000/api/plans');
-        const mealsResponse = await axios.get('http://192.168.1.19:5000/api/meals');
-        const exercisesResponse = await axios.get('http://192.168.1.19:5000/api/exercises');
+const ExerciseCard = ({ name, duration, difficulty, calories, description }: any) => (
+  <TouchableOpacity style={styles.exerciseCard}>
+    <View style={styles.exerciseIcon}>
+      <Dumbbell size={24} color="#3B82F6" />
+    </View>
+    <View style={styles.exerciseContent}>
+      <View style={styles.exerciseHeader}>
+        <Text style={styles.exerciseName}>{name}</Text>
+        <TouchableOpacity style={styles.playButton}>
+          <Play size={20} color="#3B82F6" fill="#3B82F6" />
+        </TouchableOpacity>
+      </View>
+      <Text style={styles.exerciseDescription}>{description}</Text>
+      <View style={styles.exerciseDetails}>
+        <View style={styles.exerciseDetail}>
+          <Clock size={14} color="#6B7280" />
+          <Text style={styles.exerciseDetailText}>{duration}</Text>
+        </View>
+        <View style={styles.exerciseDetail}>
+          <Flame size={14} color="#6B7280" />
+          <Text style={styles.exerciseDetailText}>{calories} kcal</Text>
+        </View>
+        <View style={[styles.exerciseDifficulty, { 
+          backgroundColor: difficulty === 'Bajo' ? '#D1FAE5' : 
+                          difficulty === 'Medio' ? '#FEF3C7' : '#FEE2E2'
+        }]}>
+          <Text style={[styles.exerciseDifficultyText, { 
+            color: difficulty === 'Bajo' ? '#065F46' : 
+                  difficulty === 'Medio' ? '#92400E' : '#991B1B'
+          }]}>{difficulty}</Text>
+        </View>
+      </View>
+    </View>
+  </TouchableOpacity>
+);
 
-        setDailyPlans(plansResponse.data);
-        setRecommendedMeals(mealsResponse.data);
-        setRecommendedExercises(exercisesResponse.data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
+const Plan = () => {
+  const meals = [
+    {
+      id: 1,
+      type: 'Desayuno',
+      name: 'Avena con Frutas',
+      calories: 320,
+      category: 'Saludable',
+      icon: Coffee,
+      color: '#F59E0B',
+    },
+    {
+      id: 2,
+      type: 'Almuerzo',
+      name: 'Ensalada de Pollo',
+      calories: 450,
+      category: 'Proteína',
+      icon: Sun,
+      color: '#10B981',
+    },
+    {
+      id: 3,
+      type: 'Cena',
+      name: 'Salmón con Vegetales',
+      calories: 380,
+      category: 'Saludable',
+      icon: Moon,
+      color: '#8B5CF6',
+    },
+  ];
 
-    fetchData();
-  }, []);
+  const recipes = [
+    {
+      id: 1,
+      name: 'Smoothie Verde Energético',
+      time: '5 min',
+      difficulty: 'Fácil',
+      calories: 180,
+      image: 'https://example.com/image1.jpg',
+    },
+    {
+      id: 2,
+      name: 'Bowl de Quinoa',
+      time: '15 min',
+      difficulty: 'Medio',
+      calories: 320,
+      image: 'https://example.com/image2.jpg',
+    },
+  ];
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-    });
-  };
-
-  const getNextDay = (date: string) => {
-    const d = new Date(date);
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().split('T')[0];
-  };
-
-  const getPrevDay = (date: string) => {
-    const d = new Date(date);
-    d.setDate(d.getDate() - 1);
-    return d.toISOString().split('T')[0];
-  };
-
-  const selectedPlan = dailyPlans.find(plan => plan.date === selectedDate);
+  const exercises = [
+    {
+      id: 1,
+      name: 'Cardio HIIT',
+      duration: '20 min',
+      difficulty: 'Alto',
+      calories: 250,
+      description: 'Entrenamiento de alta intensidad con intervalos',
+      videoUrl: 'https://example.com/video1',
+    },
+    {
+      id: 2,
+      name: 'Yoga Matutino',
+      duration: '30 min',
+      difficulty: 'Bajo',
+      calories: 120,
+      description: 'Secuencia de yoga para empezar el día',
+      videoUrl: 'https://example.com/video2',
+    },
+    {
+      id: 3,
+      name: 'Fuerza - Tren Superior',
+      duration: '45 min',
+      difficulty: 'Medio',
+      calories: 300,
+      description: 'Rutina de pesas para brazos, hombros y espalda',
+      videoUrl: 'https://example.com/video3',
+    },
+  ];
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Tu Plan</Text>
-        <Calendar color="#333" size={24} />
-      </View>
+    <SafeAreaView style={styles.container}>
+      <LinearGradient
+        colors={['#10B981', '#059669']}
+        style={styles.header}
+      >
+        <Text style={styles.title}>Plan Diario</Text>
+        <Text style={styles.date}>Hoy, {new Date().toLocaleDateString('es-ES', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        })}</Text>
+      </LinearGradient>
 
-      <View style={styles.tabs}>
-        {['plan', 'meals', 'exercises'].map(tab => (
-          <TouchableOpacity
-            key={tab}
-            style={[
-              styles.tab,
-              activeTab === tab && styles.activeTab
-            ]}
-            onPress={() => setActiveTab(tab as any)}
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Comidas del Día</Text>
+          {meals.map((meal) => (
+            <MealCard key={meal.id} {...meal} />
+          ))}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Recetas Recomendadas</Text>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            style={styles.recipesScroll}
           >
-            <Text style={[
-              styles.tabText,
-              activeTab === tab && styles.activeTabText
-            ]}>
-              {tab === 'plan' ? 'Plan Diario' : tab === 'meals' ? 'Recetas' : 'Ejercicios'}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {activeTab === 'plan' && (
-        <View>
-          <View style={styles.dateNav}>
-            <TouchableOpacity onPress={() => setSelectedDate(getPrevDay(selectedDate))}>
-              <ChevronLeft size={20} />
-            </TouchableOpacity>
-            <Text style={styles.dateText}>{formatDate(selectedDate)}</Text>
-            <TouchableOpacity onPress={() => setSelectedDate(getNextDay(selectedDate))}>
-              <ChevronRight size={20} />
-            </TouchableOpacity>
-          </View>
-
-          {selectedPlan ? (
-            <View>
-              <Text style={styles.sectionTitle}>Comidas</Text>
-              {['breakfast', 'lunch', 'dinner'].map(meal => (
-                <View key={meal} style={styles.card}>
-                  <View style={styles.cardHeader}>
-                    <Text style={styles.label}>
-                      {meal === 'breakfast' ? 'Desayuno' : meal === 'lunch' ? 'Almuerzo' : 'Cena'}
-                    </Text>
-                    <View style={styles.badgeGroup}>
-                      <Text style={styles.badge}>
-                        {(selectedPlan.meals as any)[meal].calories} kcal
-                      </Text>
-                      <Text style={styles.badge}>
-                        {(selectedPlan.meals as any)[meal].category}
-                      </Text>
-                    </View>
-                  </View>
-                  <Text>{(selectedPlan.meals as any)[meal].name}</Text>
-                </View>
-              ))}
-
-              <Text style={styles.sectionTitle}>Ejercicios</Text>
-              {selectedPlan.exercises.map(exercise => (
-                <View key={exercise.id} style={styles.card}>
-                  <View style={styles.cardHeader}>
-                    <Text style={styles.label}>{exercise.name}</Text>
-                    <View style={styles.badgeGroup}>
-                      <Text style={styles.badge}>{exercise.duration} min</Text>
-                      <Text style={styles.badge}>{exercise.category}</Text>
-                    </View>
-                  </View>
-                  <Text>{exercise.description}</Text>
-                </View>
-              ))}
-            </View>
-          ) : (
-            <Text style={styles.noPlanText}>No hay un plan para esta fecha</Text>
-          )}
+            {recipes.map((recipe) => (
+              <RecipeCard key={recipe.id} {...recipe} />
+            ))}
+          </ScrollView>
         </View>
-      )}
 
-      {activeTab === 'meals' && (
-        <View>
-          <Text style={styles.sectionTitle}>Recetas recomendadas</Text>
-          {recommendedMeals.map(meal => (
-            <View key={meal.id} style={styles.card}>
-              <Image source={{ uri: meal.imageUrl }} style={styles.image} />
-              <Text style={styles.label}>{meal.name}</Text>
-              <Text>{meal.description}</Text>
-              <View style={styles.badgeGroup}>
-                <Text style={styles.badge}>{meal.calories} kcal</Text>
-                <Text style={styles.badge}>P: {meal.protein}g</Text>
-                <Text style={styles.badge}>C: {meal.carbs}g</Text>
-                <Text style={styles.badge}>G: {meal.fat}g</Text>
-                <Text style={styles.badge}>{meal.category}</Text>
-              </View>
-              <Text>Ingredientes:</Text>
-              {meal.ingredients.map((i, idx) => (
-                <Text key={idx}>- {i}</Text>
-              ))}
-              <Text>Preparación:</Text>
-              {meal.instructions.map((step, idx) => (
-                <Text key={idx}>{idx + 1}. {step}</Text>
-              ))}
-            </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Ejercicios del Día</Text>
+          {exercises.map((exercise) => (
+            <ExerciseCard key={exercise.id} {...exercise} />
           ))}
         </View>
-      )}
-
-      {activeTab === 'exercises' && (
-        <View>
-          <Text style={styles.sectionTitle}>Ejercicios recomendados</Text>
-          {recommendedExercises.map(ex => (
-            <View key={ex.id} style={styles.card}>
-              <View style={styles.iconCircle}>
-                <Video size={24} color="#333" />
-              </View>
-              <Text style={styles.label}>{ex.name}</Text>
-              <View style={styles.badgeGroup}>
-                <Text style={styles.badge}>{ex.duration} min</Text>
-                <Text style={styles.badge}>{ex.difficulty}</Text>
-                <Text style={styles.badge}>~{ex.caloriesBurned} kcal</Text>
-                <Text style={styles.badge}>{ex.category}</Text>
-              </View>
-              <Text>{ex.description}</Text>
-              <TouchableOpacity onPress={() => Linking.openURL(ex.videoUrl)}>
-                <Text style={styles.linkText}>▶ Ver video</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-        </View>
-      )}
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

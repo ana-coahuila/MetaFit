@@ -126,7 +126,7 @@ const Profile: React.FC = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      navigation.navigate('Login'); // Navegar a Login después de logout
+      navigation.navigate('Login'); 
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
     }
@@ -276,7 +276,7 @@ const Profile: React.FC = () => {
           <Text style={styles.cardTitle}>Configuración de la cuenta</Text>
           <TouchableOpacity 
             style={styles.logoutButton} 
-            onPress={handleLogout}  // Cambiado a handleLogout
+            onPress={handleLogout}  
             disabled={isSubmitting}
           >
             <LogOut size={16} color="#DC2626" />
