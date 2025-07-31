@@ -1,20 +1,10 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import {User} from "../types/types";
+
 
 const apiUrl = process.env.EXPO_PUBLIC_API_URL;
-
-interface User {
-  _id: string;
-  fullName: string;
-  email: string;
-  age: number;
-  weight: number;
-  height: number;
-  targetWeight: number;
-  createdAt?: string;
-  updatedAt?: string;
-}
 
 interface AuthContextType {
   user: User | null;

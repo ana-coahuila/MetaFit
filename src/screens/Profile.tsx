@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
+import {View,Text,TextInput,TouchableOpacity,ScrollView,Alert,ActivityIndicator} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { User as IconUser, Settings, LogOut } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -103,10 +95,12 @@ const Profile: React.FC = () => {
   };
 
   const getBMICategory = (bmi: number) => {
-    if (bmi < 18.5) return 'Bajo peso';
-    if (bmi < 25) return 'Normal';
-    if (bmi < 30) return 'Sobrepeso';
-    return 'Obesidad';
+    if (bmi < 18.5) return 'Bajo peso'; 
+  if (bmi < 25) return 'Normal';
+  if (bmi < 30) return 'Sobrepeso';
+  if (bmi < 35) return 'Obesidad I';
+  if (bmi < 40) return 'Obesidad II';
+  return 'Obesidad III';
   };
 
   const bmi = calculateBMI();

@@ -1,52 +1,53 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
-     container: {
+  container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
   },
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 20,
+    padding: 24,
+    paddingTop: 48,
     paddingBottom: 32,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: 'white',
     marginBottom: 4,
   },
   date: {
     fontSize: 16,
-    color: '#E5E7EB',
-    textTransform: 'capitalize',
+    color: 'rgba(255, 255, 255, 0.9)',
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 24,
+    paddingHorizontal: 16,
+    marginTop: -24,
   },
   section: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 16,
-  },
-  recipesScroll: {
-    marginHorizontal: -24,
-    paddingHorizontal: 24,
-  },
-  mealCard: {
-    backgroundColor: '#FFFFFF',
+    marginBottom: 24,
+    backgroundColor: 'white',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+    color: '#111827',
+  },
+  mealCard: {
+    backgroundColor: 'white',
+    borderRadius: 8,
     borderLeftWidth: 4,
+    marginBottom: 12,
+    padding: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -68,14 +69,14 @@ export default StyleSheet.create({
   },
   mealName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#111827',
     marginBottom: 8,
   },
   mealDetails: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   mealCalories: {
     fontSize: 14,
@@ -88,40 +89,36 @@ export default StyleSheet.create({
   },
   mealCategoryText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
+  },
+  recipesScroll: {
+    paddingBottom: 8,
   },
   recipeCard: {
     width: 200,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
     marginRight: 16,
+    backgroundColor: 'white',
+    borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
   },
   recipeImageContainer: {
     height: 120,
-    width: '100%',
   },
   recipeImage: {
-    height: '100%',
     width: '100%',
+    height: '100%',
   },
   recipeInfo: {
     padding: 12,
   },
   recipeName: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#111827',
     marginBottom: 8,
   },
   recipeDetails: {
     flexDirection: 'row',
-    alignItems: 'center',
     marginBottom: 8,
   },
   recipeDetail: {
@@ -142,27 +139,22 @@ export default StyleSheet.create({
   },
   recipeDifficultyText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   exerciseCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    flexDirection: 'row',
+    backgroundColor: 'white',
+    borderRadius: 8,
     padding: 16,
     marginBottom: 12,
-    flexDirection: 'row',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
   },
   exerciseIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: '#EFF6FF',
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 16,
   },
   exerciseContent: {
@@ -172,21 +164,25 @@ export default StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 8,
   },
   exerciseName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#111827',
-    marginBottom: 4,
-    flex: 1,
   },
   playButton: {
-    padding: 4,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#EFF6FF',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   exerciseDescription: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#6B7280',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   exerciseDetails: {
     flexDirection: 'row',
@@ -195,7 +191,7 @@ export default StyleSheet.create({
   exerciseDetail: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 16,
   },
   exerciseDetailText: {
     fontSize: 12,
@@ -209,6 +205,59 @@ export default StyleSheet.create({
   },
   exerciseDifficultyText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    color: '#6B7280',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#EF4444',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: '#10B981',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontWeight: '500',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  createPlanButton: {
+    backgroundColor: '#10B981',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  createPlanButtonText: {
+    color: 'white',
+    fontWeight: '500',
   },
 });

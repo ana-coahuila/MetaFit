@@ -5,6 +5,7 @@ import Dashboard from "../screens/Dashboard";
 import Plan from "../screens/Plan";
 import Profile from "../screens/Profile";
 import Progress from "../screens/Progress";
+import Recipe from "../screens/Recipe";
 
 const Tab = createBottomTabNavigator();
 
@@ -39,6 +40,17 @@ const TabNavigator = () => {
           headerShown: false,
         }}
       />
+
+       <Tab.Screen
+        name="Recipe"
+        component={Recipe}
+        options={{
+          title: 'Receta',
+          tabBarIcon: ({ color, size }) => <ClipboardList size={size} color={color} />,
+          headerShown: false,
+        }}
+      />
+
       <Tab.Screen
         name="Progress"
         component={Progress}

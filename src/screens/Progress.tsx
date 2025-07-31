@@ -8,6 +8,7 @@ import components from '../components/Card';
 type WeightRecord = {
   date: string;
   weight: number;
+  height: number;
 };
 
 type User = {

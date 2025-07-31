@@ -1,46 +1,13 @@
-import React from 'react';
-import { View,Text,ScrollView,TouchableOpacity, SafeAreaView} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Coffee, Sun, Moon, Dumbbell, Clock, Flame, Play } from 'lucide-react-native';
+import axios from 'axios';
 import styles from '../styles/PlanStyles';
+import { useAuth } from '../context/AuthContext';
 
-// Types
-type DailyPlan = { 
-  date: string;
-  meals: {
-    breakfast: { name: string; calories: number; category: string };
-    lunch: { name: string; calories: number; category: string };
-    dinner: { name: string; calories: number; category: string };
-  };
-  exercises: Exercise[];
-};
+const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
-type Meal = {
-  id: string;
-  name: string;
-  description: string;
-  imageUrl: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  ingredients: string[];
-  instructions: string[];
-  category: string;
-};
-
-type Exercise = {
-  id: string;
-  name: string;
-  duration: number;
-  difficulty: string;
-  caloriesBurned: number;
-  description: string;
-  videoUrl: string;
-  category: string;
-};
-
-// Components
 const MealCard = ({ type, name, calories, category, icon: Icon, color }: any) => (
   <TouchableOpacity style={[styles.mealCard, { borderLeftColor: color }]}>
     <View style={styles.mealCardContent}>
@@ -54,36 +21,6 @@ const MealCard = ({ type, name, calories, category, icon: Icon, color }: any) =>
         <View style={[styles.mealCategory, { backgroundColor: `${color}20` }]}>
           <Text style={[styles.mealCategoryText, { color }]}>{category}</Text>
         </View>
-      </View>
-    </View>
-  </TouchableOpacity>
-);
-
-const RecipeCard = ({ name, time, difficulty, calories, image }: any) => (
-  <TouchableOpacity style={styles.recipeCard}>
-    <View style={styles.recipeImageContainer}>
-      <View style={[styles.recipeImage, { backgroundColor: '#E5E7EB' }]} />
-    </View>
-    <View style={styles.recipeInfo}>
-      <Text style={styles.recipeName}>{name}</Text>
-      <View style={styles.recipeDetails}>
-        <View style={styles.recipeDetail}>
-          <Clock size={14} color="#6B7280" />
-          <Text style={styles.recipeDetailText}>{time}</Text>
-        </View>
-        <View style={styles.recipeDetail}>
-          <Flame size={14} color="#6B7280" />
-          <Text style={styles.recipeDetailText}>{calories} kcal</Text>
-        </View>
-      </View>
-      <View style={[styles.recipeDifficulty, { 
-        backgroundColor: difficulty === 'Fácil' ? '#D1FAE5' : 
-                        difficulty === 'Medio' ? '#FEF3C7' : '#FEE2E2'
-      }]}>
-        <Text style={[styles.recipeDifficultyText, { 
-          color: difficulty === 'Fácil' ? '#065F46' : 
-                difficulty === 'Medio' ? '#92400E' : '#991B1B'
-        }]}>{difficulty}</Text>
       </View>
     </View>
   </TouchableOpacity>
@@ -111,13 +48,13 @@ const ExerciseCard = ({ name, duration, difficulty, calories, description }: any
           <Flame size={14} color="#6B7280" />
           <Text style={styles.exerciseDetailText}>{calories} kcal</Text>
         </View>
-        <View style={[styles.exerciseDifficulty, { 
-          backgroundColor: difficulty === 'Bajo' ? '#D1FAE5' : 
-                          difficulty === 'Medio' ? '#FEF3C7' : '#FEE2E2'
+        <View style={[styles.exerciseDifficulty, {
+          backgroundColor: difficulty === 'Bajo' ? '#D1FAE5' :
+            difficulty === 'Medio' ? '#FEF3C7' : '#FEE2E2'
         }]}>
-          <Text style={[styles.exerciseDifficultyText, { 
-            color: difficulty === 'Bajo' ? '#065F46' : 
-                  difficulty === 'Medio' ? '#92400E' : '#991B1B'
+          <Text style={[styles.exerciseDifficultyText, {
+            color: difficulty === 'Bajo' ? '#065F46' :
+              difficulty === 'Medio' ? '#92400E' : '#991B1B'
           }]}>{difficulty}</Text>
         </View>
       </View>
@@ -126,84 +63,45 @@ const ExerciseCard = ({ name, duration, difficulty, calories, description }: any
 );
 
 const Plan = () => {
-  const meals = [
-    {
-      id: 1,
-      type: 'Desayuno',
-      name: 'Avena con Frutas',
-      calories: 320,
-      category: 'Saludable',
-      icon: Coffee,
-      color: '#F59E0B',
-    },
-    {
-      id: 2,
-      type: 'Almuerzo',
-      name: 'Ensalada de Pollo',
-      calories: 450,
-      category: 'Proteína',
-      icon: Sun,
-      color: '#10B981',
-    },
-    {
-      id: 3,
-      type: 'Cena',
-      name: 'Salmón con Vegetales',
-      calories: 380,
-      category: 'Saludable',
-      icon: Moon,
-      color: '#8B5CF6',
-    },
-  ];
+  const { token } = useAuth();
+  const [plan, setPlan] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const recipes = [
-    {
-      id: 1,
-      name: 'Smoothie Verde Energético',
-      time: '5 min',
-      difficulty: 'Fácil',
-      calories: 180,
-      image: 'https://example.com/image1.jpg',
-    },
-    {
-      id: 2,
-      name: 'Bowl de Quinoa',
-      time: '15 min',
-      difficulty: 'Medio',
-      calories: 320,
-      image: 'https://example.com/image2.jpg',
-    },
-  ];
+  const fetchPlan = async () => {
+  try {
+    const res = await axios.get(`${apiUrl}/plans`, {
+      headers: { 'x-auth-token': token },
+    });
 
-  const exercises = [
-    {
-      id: 1,
-      name: 'Cardio HIIT',
-      duration: '20 min',
-      difficulty: 'Alto',
-      calories: 250,
-      description: 'Entrenamiento de alta intensidad con intervalos',
-      videoUrl: 'https://example.com/video1',
-    },
-    {
-      id: 2,
-      name: 'Yoga Matutino',
-      duration: '30 min',
-      difficulty: 'Bajo',
-      calories: 120,
-      description: 'Secuencia de yoga para empezar el día',
-      videoUrl: 'https://example.com/video2',
-    },
-    {
-      id: 3,
-      name: 'Fuerza - Tren Superior',
-      duration: '45 min',
-      difficulty: 'Medio',
-      calories: 300,
-      description: 'Rutina de pesas para brazos, hombros y espalda',
-      videoUrl: 'https://example.com/video3',
-    },
-  ];
+    if (res.data.length === 0) {
+      // No hay plan aún, lo creamos
+      const newPlanRes = await axios.post(`${apiUrl}/plans`, {}, {
+        headers: { 'x-auth-token': token },
+      });
+      setPlan(newPlanRes.data);
+    } else {
+      setPlan(res.data[0]);
+    }
+  } catch (err) {
+    console.error('Error al obtener/crear el plan:', err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  useEffect(() => {
+    if (token) fetchPlan();
+  }, [token]);
+
+  const getIconColor = (mealType: string) => {
+    switch (mealType) {
+      case 'Desayuno': return ['#F59E0B', Coffee];
+      case 'Almuerzo': return ['#10B981', Sun];
+      case 'Cena': return ['#8B5CF6', Moon];
+      default: return ['#6B7280', Coffee];
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -212,42 +110,61 @@ const Plan = () => {
         style={styles.header}
       >
         <Text style={styles.title}>Plan Diario</Text>
-        <Text style={styles.date}>Hoy, {new Date().toLocaleDateString('es-ES', { 
-          weekday: 'long', 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
+        <Text style={styles.date}>Hoy, {new Date().toLocaleDateString('es-ES', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
         })}</Text>
       </LinearGradient>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Comidas del Día</Text>
-          {meals.map((meal) => (
-            <MealCard key={meal.id} {...meal} />
-          ))}
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#10B981" />
         </View>
+      ) : (
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Comidas del Día</Text>
+            {plan?.meals && (
+              <>
+                {Object.entries(plan.meals).map(([typeKey, data]: any) => {
+                  const typeName =
+                    typeKey === 'breakfast' ? 'Desayuno' :
+                      typeKey === 'lunch' ? 'Almuerzo' : 'Cena';
+                  const [color, Icon] = getIconColor(typeName);
+                  return (
+                    <MealCard
+                      key={typeKey}
+                      type={typeName}
+                      name={data.name}
+                      calories={data.calories}
+                      category={data.category}
+                      icon={Icon}
+                      color={color}
+                    />
+                  );
+                })}
+              </>
+            )}
+          </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recetas Recomendadas</Text>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            style={styles.recipesScroll}
-          >
-            {recipes.map((recipe) => (
-              <RecipeCard key={recipe.id} {...recipe} />
+          {/* Esto es solo mock por ahora, puedes eliminarlo si los ejercicios también vienen del backend */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Ejercicios del Día</Text>
+            {[{
+              id: 1,
+              name: 'Cardio HIIT',
+              duration: '20 min',
+              difficulty: 'Alto',
+              calories: 250,
+              description: 'Entrenamiento de alta intensidad con intervalos',
+            }].map((exercise) => (
+              <ExerciseCard key={exercise.id} {...exercise} />
             ))}
-          </ScrollView>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Ejercicios del Día</Text>
-          {exercises.map((exercise) => (
-            <ExerciseCard key={exercise.id} {...exercise} />
-          ))}
-        </View>
-      </ScrollView>
+          </View>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 };
