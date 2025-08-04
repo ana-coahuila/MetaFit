@@ -129,6 +129,8 @@ const Profile: React.FC = () => {
   return (
     <LinearGradient colors={['#00C9FF', '#92FE9D']} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
+
+        
         <View style={styles.header}>
           <Text style={styles.title}>Tu Perfil</Text>
           <View style={styles.iconContainer}>

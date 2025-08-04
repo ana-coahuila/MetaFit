@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, ActivityIndicator, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Coffee, Sun, Moon, Dumbbell, Clock, Flame, Play } from 'lucide-react-native';
 import axios from 'axios';
@@ -96,6 +96,7 @@ const Plan = () => {
 
   const getIconColor = (mealType: string) => {
     switch (mealType) {
+      
       case 'Desayuno': return ['#F59E0B', Coffee];
       case 'Almuerzo': return ['#10B981', Sun];
       case 'Cena': return ['#8B5CF6', Moon];
@@ -106,10 +107,14 @@ const Plan = () => {
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={['#10B981', '#059669']}
+        colors={['#00C9FF', '#92FE9D']}
         style={styles.header}
       >
-        <Text style={styles.title}>Plan Diario</Text>
+      <View style={styles.row}>
+      <Image
+        source={{ uri: 'https://cdn-icons-png.flaticon.com/128/18265/18265431.png' }} 
+          style={styles.icon} />
+        <Text style={styles.title}>Plan Diario</Text></View>
         <Text style={styles.date}>Hoy, {new Date().toLocaleDateString('es-ES', {
           weekday: 'long',
           year: 'numeric',

@@ -10,7 +10,7 @@ export default StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 16,
-    color: '#1f2937',
+    color: '#136a6dad',
   },
   greeting: {
     fontSize: 26,
@@ -33,13 +33,13 @@ export default StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#111827',
+    color: '#0d0d0dff',
   },
   percent: {
     fontSize: 22,
     fontWeight: 'bold',
     marginTop: 4,
-    color: '#000000',
+    color: '#ce1a1aff',
   },
   barBackground: {
     height: 12,
@@ -124,12 +124,55 @@ header1: {
   paddingHorizontal: 16,
   marginTop: 20,
 },
-
-
   grid: {
     flexDirection: 'column',
     gap: 16,
   },
+
+   section: {
+    marginBottom: 24,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+    color: '#111827',
+  },
+
+row: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginBottom: 8,
+},
+
+mealCalories: {
+  fontSize: 14,
+  color: '#6B7280',
+  marginRight: 8,
+},
+
+mealName: {
+  fontSize: 16,
+  fontWeight: '500',
+  color: '#111827',
+},
+
+  icon: {
+    width: 29,
+    height: 29,
+    marginRight: 0,
+    borderRadius: 50,
+    
+  },
+
 });
 
 

@@ -1,14 +1,12 @@
-import React, { useEffect, useState } from 'react'; //PRIN 
-import {View,Text,TextInput,TouchableOpacity,ScrollView,Alert,} from 'react-native';
-import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../styles/ProgressStyles';
-import components from '../components/Card';
+import axios from 'axios';
 
 type WeightRecord = {
   date: string;
   weight: number;
-  height: number;
 };
 
 type User = {
@@ -20,74 +18,88 @@ type User = {
   weightRecords: WeightRecord[];
 };
 
+
 const Progress: React.FC = () => {
   const [weightRecords, setWeightRecords] = useState<WeightRecord[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [newWeight, setNewWeight] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  const API_BASE_URL = 'http://192.168.1.195000/api/auth/user';
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchUserData = async () => {
       try {
-        const token = await AsyncStorage.getItem('userToken');
-        if (!token) throw new Error('Token no encontrado');
+        const token = await AsyncStorage.getItem('token');
+        const response = await axios.get(`${apiUrl}/auth/user`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-       const res = await axios.get(API_BASE_URL, {
-
-  headers: {
-    'x-auth-token': token,
-  },
-});
-
-
-        setUser(res.data);
-        setWeightRecords(res.data.weightRecords || []);
+        const userData: User = response.data;
+        setUser(userData);
+        setWeightRecords(userData.weightRecords || []);
       } catch (err) {
-        console.error('Error al obtener datos:', err);
-        Alert.alert('Error', 'No autorizado o fallo de conexión');
+        console.error('Error al obtener los datos del usuario', err);
+        Alert.alert('Error', 'No se pudieron cargar los datos del usuario.');
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchData();
+    fetchUserData();
   }, []);
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     const weightValue = parseFloat(newWeight);
     if (isNaN(weightValue) || weightValue <= 0) {
       setError('Por favor ingresa un peso válido');
       return;
     }
 
-    try {
-      const token = await AsyncStorage.getItem('userToken');
-      if (!token) throw new Error('Token no encontrado');
+    const today = new Date().toISOString();
+    const newRecord: WeightRecord = { date: today, weight: weightValue };
+    const updatedRecords = [...weightRecords, newRecord];
+    setWeightRecords(updatedRecords);
 
-      const res = await axios.post(
-        `${API_BASE_URL}/update-weight`,
-        { weight: weightValue },
-        { headers: { 'x-auth-token': token } }
-      );
+    if (user) {
+      const heightInMeters = 1.7;
+      const bmi = weightValue / (heightInMeters * heightInMeters);
+      let category = '';
+      if (bmi < 18.5) category = 'Bajo peso';
+       else if (bmi < 25) category = 'Normal';
+      else if (bmi < 25) return 'Normal';
+      else if (bmi < 30) return 'Sobrepeso';
+      else if (bmi < 35) return 'Obesidad I';
+      else if (bmi < 40) return 'Obesidad II';
+      else category = 'Obesidad III';
 
-      setUser(res.data);
-      setWeightRecords(res.data.weightRecords);
-      setNewWeight('');
-      setShowForm(false);
-      setError('');
-    } catch (err) {
-      console.error('Error al guardar peso:', err);
-      Alert.alert('Error', 'No se pudo guardar el peso.');
+      setUser({
+        ...user,
+        weight: weightValue,
+        bmi,
+        bmiCategory: category,
+        weightRecords: updatedRecords,
+      });
     }
+
+    setNewWeight('');
+    setShowForm(false);
+    setError('');
   };
+
+  if (loading) return <Text style={styles.header}>Cargando datos...</Text>;
+  if (!user) return <Text style={styles.header}>No hay usuario autenticado.</Text>;
 
   const sortedRecords = [...weightRecords].sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
   );
 
   const calculateProgress = () => {
-    if (!user || sortedRecords.length === 0) return 0;
+    if (sortedRecords.length === 0) return 0;
     const initial = sortedRecords[0].weight;
     const current = sortedRecords[sortedRecords.length - 1].weight;
     const goal = user.targetWeight;
@@ -112,8 +124,6 @@ const Progress: React.FC = () => {
     return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
   };
 
-  if (!user) return <Text style={styles.header}>Cargando datos...</Text>;
-
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>Hola, {user.fullName.split(' ')[0]}</Text>
@@ -121,6 +131,7 @@ const Progress: React.FC = () => {
       <View style={styles.card}>
         <Text style={styles.title}>Progreso hacia tu meta</Text>
         <Text>Meta: {user.targetWeight} kg</Text>
+        <Text>Peso Actual: {user.weight} kg</Text>
         <Text style={styles.percent}>{calculateProgress().toFixed(1)}%</Text>
         <View style={styles.barBackground}>
           <View style={[styles.barFill, { width: `${calculateProgress()}%` }]} />
@@ -181,12 +192,31 @@ const Progress: React.FC = () => {
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.title}>Estadísticas</Text>
-        <Text>Peso inicial: {sortedRecords[0]?.weight ?? user.weight} kg</Text>
-        <Text>Peso actual: {user.weight} kg</Text>
-        <Text>Objetivo de Peso: {user.targetWeight} kg</Text>
-        <Text>IMC: {user.bmi.toFixed(1)}</Text>
-        <Text>Categoría: {user.bmiCategory}</Text>
+            <Image
+              source={{ uri: 'https://cdn-icons-png.flaticon.com/128/18265/18265431.png' }} 
+                style={styles.icon} />
+      <View style={[styles.section, { marginTop: 24 }]}>
+        <Text style={styles.sectionTitle}>Estadísticas</Text></View>
+        <View style={styles.row}>
+          <Text style={styles.mealCalories}>Peso inicial:</Text>
+          <Text style={styles.mealName}>{sortedRecords[0]?.weight ?? user.weight} kg</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.mealCalories}>Peso actual:</Text>
+          <Text style={styles.mealName}>{user.weight} kg</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.mealCalories}>Objetivo de peso:</Text>
+          <Text style={styles.mealName}>{user.targetWeight} kg</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.mealCalories}>IMC:</Text>
+          <Text style={styles.mealName}>{user.bmi.toFixed(1)}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.mealCalories}>Categoría:</Text>
+          <Text style={styles.mealName}>{user.bmiCategory}</Text>
+        </View>
       </View>
     </ScrollView>
   );

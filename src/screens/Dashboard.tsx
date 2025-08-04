@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import { LineChart } from 'react-native-chart-kit';
 import styles from '../styles/DashboardStyles';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
@@ -68,25 +67,22 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch user weight records
         const weightResponse = await axios.get(`${apiUrl}/plans/weight`, {
           headers: { Authorization: `Bearer ${authUser?.token}` }
         });
         setPesoRecords(weightResponse.data);
 
-        // Fetch daily plans
         const plansResponse = await axios.get(`${apiUrl}/plans`, {
           headers: { Authorization: `Bearer ${authUser?.token}` }
         });
         setDailyPlans(plansResponse.data);
+        
 
-        // Fetch meals
         const mealsResponse = await axios.get(`${apiUrl}/meals`, {
           headers: { Authorization: `Bearer ${authUser?.token}` }
         });
         setMeals(mealsResponse.data);
 
-        // Fetch exercises
         const exercisesResponse = await axios.get(`${apiUrl}/exercises`, {
           headers: { Authorization: `Bearer ${authUser?.token}` }
         });
@@ -182,51 +178,44 @@ const Dashboard: React.FC = () => {
         </View>
       </View>
 
-      {/* Tarjeta de progreso */}
+      {/* Sección informativa de Metafit */}
       <View style={styles.card}>
-        <Text style={styles.title}>Tu progreso</Text>
-        <Text style={styles.percent}>{progress.toFixed(1)}%</Text>
-        <Text style={{ color: '#4B5563' }}>{getWeightDifference()}</Text>
+        <Text style={styles.title}>¿Qué es Metafit?</Text>
+        <Text style={{ color: '#4B5563', marginVertical: 8 }}>
+          Metafit es una aplicación que te acompaña en tu camino hacia una vida más saludable. 
+          Te ofrece recomendaciones personalizadas de comidas, ejercicios y un seguimiento de tu progreso basado en tus objetivos.
+        </Text>
+        <Text style={{ color: '#4B5563', marginBottom: 8 }}>
+          Registra tu peso, recibe planes diarios y mantente motivado con rutinas diseñadas especialmente para ti.
+        </Text>
+        
+        <View style={{ alignItems: 'center', marginTop: 12 }}>
 
-        {pesoRecords.length > 0 ? (
-          <LineChart
-            data={{
-              labels: pesoRecords.map((p) => p.date.slice(5)),
-              datasets: [{ data: pesoRecords.map((p) => p.peso) }],
-            }}
-            width={Dimensions.get('window').width - 32}
-            height={220}
-            yAxisSuffix="kg"
-            yAxisInterval={1}
-            chartConfig={{
-              backgroundGradientFrom: '#f3f4f6',
-              backgroundGradientTo: '#f3f4f6',
-              decimalPlaces: 1,
-              color: (opacity = 1) => `rgba(21, 128, 61, ${opacity})`,
-              labelColor: () => '#4B5563',
-              style: { borderRadius: 8 },
-              propsForDots: {
-                r: '4',
-                strokeWidth: '2',
-                stroke: '#1E3A8A',
-              },
-            }}
-            bezier
-            style={{
-              marginVertical: 16,
-              borderRadius: 8,
-            }}
+          <View style={styles.card}>
+  <Text style={styles.title}>¿Qué es Metafit?</Text>
+  <Text style={{ color: '#4B5563', marginVertical: 8 }}>
+    Metafit es tu compañero digital en el camino hacia una vida más saludable. Diseñada especialmente para personas con sobrepeso u obesidad, esta aplicación combina inteligencia artificial, rutinas personalizadas y una alimentación guiada para ayudarte a alcanzar tus objetivos físicos.
+  </Text>
+  <Text style={{ color: '#4B5563', marginBottom: 8 }}>
+    Con Metafit puedes registrar tu peso, acceder a dietas y recetas nutritivas, visualizar rutinas en video adaptadas a tu nivel, y recibir recomendaciones basadas en tu edad, peso y estatura. Toda la experiencia es 100% personalizada.
+  </Text>
+  <Text style={{ color: '#4B5563', marginBottom: 8 }}>
+    ¿Tu meta es sentirte mejor, tener más energía o reducir tu peso de forma saludable? Metafit te acompaña paso a paso con planes diarios, consejos de salud, y monitoreo de tu avance. 
+  </Text>
+  <Text style={{ color: '#4B5563' }}>
+    ¡No es solo una app, es tu aliada en el cambio de hábitos y mejora de tu calidad de vida!
+  </Text>
+
+  <View style={{ alignItems: 'center', marginTop: 12 }}>
+  </View>
+</View>
+
+          <Image
+            source={{ uri: 'https://images.pexels.com/photos/1092730/pexels-photo-1092730.jpeg' }} // Reemplaza este link
+            style={{ width: '100%', height: 180, borderRadius: 12 }}
+            resizeMode="cover"
           />
-        ) : (
-          <Text style={{ marginVertical: 16 }}>No hay datos de peso registrados</Text>
-        )}
-
-        <TouchableOpacity 
-          style={styles.button}
-          onPress={() => navigation.navigate('Progress' as never)}
-        >
-          <Text style={styles.buttonText}>Ver detalles</Text>
-        </TouchableOpacity>
+        </View>
       </View>
 
       {/* Tarjetas Plan y Peso */}
@@ -242,7 +231,7 @@ const Dashboard: React.FC = () => {
               <Text style={{ fontWeight: '600', marginTop: 12 }}>Ejercicios</Text>
               {todayPlan.exercises.map((e) => (
                 <Text key={e.id}>
-                  �‍♀️ {e.name} ({e.duration} min)
+                  🏋️ {e.name} ({e.duration} min)
                 </Text>
               ))}
               <TouchableOpacity 

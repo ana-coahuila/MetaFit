@@ -130,6 +130,8 @@ header1: {
     flexDirection: 'column',
     gap: 16,
   },
+
+  
 });
 
 
