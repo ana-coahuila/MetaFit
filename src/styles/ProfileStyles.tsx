@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
   container: { 
-    padding: 16,
+    padding: 20,
     paddingBottom: 32,
     paddingTop: 40,
     justifyContent: 'center',

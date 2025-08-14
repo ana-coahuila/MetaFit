@@ -1,28 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, Image, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../styles/ProgressStyles';
 import axios from 'axios';
 
-type WeightRecord = {
-  date: string;
-  weight: number;
-};
-
-type User = {
-  fullName: string;
-  weight: number;
-  targetWeight: number;
-  bmi: number;
-  bmiCategory: string;
-  weightRecords: WeightRecord[];
-};
-
-
-const Progress: React.FC = () => {
-  const [weightRecords, setWeightRecords] = useState<WeightRecord[]>([]);
-  const [user, setUser] = useState<User | null>(null);
-  const [newWeight, setNewWeight] = useState('');
+const Progress = () => {
+  const [progressRecords, setProgressRecords] = useState([]);
+  const [userData, setUserData] = useState({
+    fullName: '',
+    weight: 0,
+    height: 0,
+    targetWeight: 0,
+    bmi: 0,
+    bmiCategory: ''
+  });
+  const [newProgress, setNewProgress] = useState({
+    weight: '',
+    height: '',
+    targetWeight: ''
+  });
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -30,116 +26,148 @@ const Progress: React.FC = () => {
   const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchData = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const response = await axios.get(`${apiUrl}/auth/user`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        
+        // Obtener datos del usuario
+        const userResponse = await axios.get(`${apiUrl}/auth/user`, {
+          headers: { 'x-auth-token': token }
+        });
+        
+        // Obtener historial de progreso
+        const progressResponse = await axios.get(`${apiUrl}/progress`, {
+          headers: { 'x-auth-token': token }
         });
 
-        const userData: User = response.data;
-        setUser(userData);
-        setWeightRecords(userData.weightRecords || []);
+        setUserData({
+          fullName: userResponse.data.fullName,
+          weight: userResponse.data.weight,
+          height: userResponse.data.height,
+          targetWeight: userResponse.data.targetWeight,
+          bmi: userResponse.data.bmi,
+          bmiCategory: userResponse.data.bmiCategory
+        });
+
+        setProgressRecords(progressResponse.data);
       } catch (err) {
-        console.error('Error al obtener los datos del usuario', err);
-        Alert.alert('Error', 'No se pudieron cargar los datos del usuario.');
+        console.error('Error al obtener datos:', err);
+        Alert.alert('Error', 'No se pudieron cargar los datos.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUserData();
+    fetchData();
   }, []);
 
-  const handleSubmit = () => {
-    const weightValue = parseFloat(newWeight);
-    if (isNaN(weightValue) || weightValue <= 0) {
-      setError('Por favor ingresa un peso válido');
+  const handleSubmit = async () => {
+    if (!newProgress.weight || !newProgress.height || !newProgress.targetWeight) {
+      setError('Por favor completa todos los campos');
       return;
     }
 
-    const today = new Date().toISOString();
-    const newRecord: WeightRecord = { date: today, weight: weightValue };
-    const updatedRecords = [...weightRecords, newRecord];
-    setWeightRecords(updatedRecords);
-
-    if (user) {
-      const heightInMeters = 1.7;
-      const bmi = weightValue / (heightInMeters * heightInMeters);
-      let category = '';
-      if (bmi < 18.5) category = 'Bajo peso';
-       else if (bmi < 25) category = 'Normal';
-      else if (bmi < 25) return 'Normal';
-      else if (bmi < 30) return 'Sobrepeso';
-      else if (bmi < 35) return 'Obesidad I';
-      else if (bmi < 40) return 'Obesidad II';
-      else category = 'Obesidad III';
-
-      setUser({
-        ...user,
-        weight: weightValue,
-        bmi,
-        bmiCategory: category,
-        weightRecords: updatedRecords,
+    try {
+      setLoading(true);
+      const token = await AsyncStorage.getItem('token');
+      
+      const response = await axios.post(`${apiUrl}/progress`, {
+        weight: parseFloat(newProgress.weight),
+        height: parseFloat(newProgress.height),
+        targetWeight: parseFloat(newProgress.targetWeight)
+      }, {
+        headers: { 'x-auth-token': token }
       });
-    }
 
-    setNewWeight('');
-    setShowForm(false);
-    setError('');
+      // Actualizar el estado con los nuevos datos
+      setUserData({
+        ...userData,
+        weight: response.data.user.weight,
+        height: response.data.user.height,
+        targetWeight: response.data.user.targetWeight,
+        bmi: response.data.user.bmi,
+        bmiCategory: response.data.user.bmiCategory
+      });
+
+      // Agregar el nuevo registro al historial
+      setProgressRecords([response.data.progress, ...progressRecords]);
+      
+      setNewProgress({ weight: '', height: '', targetWeight: '' });
+      setShowForm(false);
+      setError('');
+      
+      if (response.data.message.includes('nuevo plan')) {
+        Alert.alert('Éxito', 'Se ha generado un nuevo plan adaptado a tu progreso');
+      } else {
+        Alert.alert('Éxito', 'Progreso registrado correctamente');
+      }
+    } catch (err) {
+      console.error('Error al registrar progreso:', err);
+      Alert.alert('Error', 'No se pudo registrar el progreso');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (loading) return <Text style={styles.header}>Cargando datos...</Text>;
-  if (!user) return <Text style={styles.header}>No hay usuario autenticado.</Text>;
-
-  const sortedRecords = [...weightRecords].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
-
   const calculateProgress = () => {
-    if (sortedRecords.length === 0) return 0;
-    const initial = sortedRecords[0].weight;
-    const current = sortedRecords[sortedRecords.length - 1].weight;
-    const goal = user.targetWeight;
+    if (progressRecords.length === 0) return 0;
+    
+    const initialWeight = progressRecords[progressRecords.length - 1].weight;
+    const currentWeight = userData.weight;
+    const targetWeight = userData.targetWeight;
 
-    if (goal < initial)
-      return current <= goal
+    if (targetWeight < initialWeight) {
+      return currentWeight <= targetWeight
         ? 100
-        : current >= initial
+        : currentWeight >= initialWeight
         ? 0
-        : ((initial - current) / (initial - goal)) * 100;
-    if (goal > initial)
-      return current >= goal
+        : ((initialWeight - currentWeight) / (initialWeight - targetWeight)) * 100;
+    }
+    
+    if (targetWeight > initialWeight) {
+      return currentWeight >= targetWeight
         ? 100
-        : current <= initial
+        : currentWeight <= initialWeight
         ? 0
-        : ((current - initial) / (goal - initial)) * 100;
+        : ((currentWeight - initialWeight) / (targetWeight - initialWeight)) * 100;
+    }
+    
     return 100;
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
   };
 
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#10B981" />
+      </View>
+    );
+  }
+
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.header}>Hola, {user.fullName.split(' ')[0]}</Text>
+      <Text style={styles.header}>Hola, {userData.fullName.split(' ')[0]}</Text>
 
       <View style={styles.card}>
         <Text style={styles.title}>Progreso hacia tu meta</Text>
-        <Text>Meta: {user.targetWeight} kg</Text>
-        <Text>Peso Actual: {user.weight} kg</Text>
+        <Text>Meta: {userData.targetWeight} kg</Text>
+        <Text>Peso Actual: {userData.weight} kg</Text>
         <Text style={styles.percent}>{calculateProgress().toFixed(1)}%</Text>
         <View style={styles.barBackground}>
           <View style={[styles.barFill, { width: `${calculateProgress()}%` }]} />
         </View>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={() => setShowForm(!showForm)}>
-        <Text style={styles.buttonText}>Registrar peso</Text>
+      <TouchableOpacity 
+        style={styles.button} 
+        onPress={() => setShowForm(!showForm)}
+        disabled={loading}
+      >
+        <Text style={styles.buttonText}>Registrar progreso</Text>
       </TouchableOpacity>
 
       {showForm && (
@@ -147,17 +175,45 @@ const Progress: React.FC = () => {
           <TextInput
             placeholder="Peso actual (kg)"
             keyboardType="numeric"
-            value={newWeight}
-            onChangeText={setNewWeight}
+            value={newProgress.weight}
+            onChangeText={(text) => setNewProgress({...newProgress, weight: text})}
             style={styles.input}
           />
+          <TextInput
+            placeholder="Altura (m)"
+            keyboardType="numeric"
+            value={newProgress.height}
+            onChangeText={(text) => setNewProgress({...newProgress, height: text})}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="Peso objetivo (kg)"
+            keyboardType="numeric"
+            value={newProgress.targetWeight}
+            onChangeText={(text) => setNewProgress({...newProgress, targetWeight: text})}
+            style={styles.input}
+          />
+          
           {error ? <Text style={styles.error}>{error}</Text> : null}
+          
           <View style={styles.formRow}>
-            <TouchableOpacity onPress={() => setShowForm(false)} style={styles.cancelBtn}>
+            <TouchableOpacity 
+              onPress={() => setShowForm(false)} 
+              style={styles.cancelBtn}
+              disabled={loading}
+            >
               <Text>Cancelar</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleSubmit} style={styles.saveBtn}>
-              <Text style={{ color: '#fff' }}>Guardar</Text>
+            <TouchableOpacity 
+              onPress={handleSubmit} 
+              style={styles.saveBtn}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={{ color: '#fff' }}>Guardar</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -165,57 +221,63 @@ const Progress: React.FC = () => {
 
       <View style={styles.card}>
         <Text style={styles.title}>Registros</Text>
-        {sortedRecords.length === 0 ? (
-          <Text>No hay registros de peso</Text>
+        {progressRecords.length === 0 ? (
+          <Text>No hay registros de progreso</Text>
         ) : (
-          sortedRecords
-            .slice()
-            .reverse()
-            .map((record, i, arr) => {
-              const prev = arr[i + 1];
-              const diff = prev ? (record.weight - prev.weight).toFixed(1) : null;
-              const isLoss = diff && parseFloat(diff) < 0;
-              return (
-                <View key={record.date + i} style={styles.recordRow}>
-                  <Text>{formatDate(record.date)}</Text>
-                  <Text>{record.weight} kg</Text>
-                  {diff && (
-                    <Text style={{ color: isLoss ? 'green' : 'red' }}>
-                      {parseFloat(diff) > 0 ? '+' : ''}
-                      {diff} kg
-                    </Text>
-                  )}
-                </View>
-              );
-            })
+          progressRecords.map((record, index) => {
+            const prevRecord = progressRecords[index + 1];
+            const diff = prevRecord ? (record.weight - prevRecord.weight).toFixed(1) : null;
+            const isLoss = diff && parseFloat(diff) < 0;
+            
+            return (
+              <View key={record._id} style={styles.recordRow}>
+                <Text>{formatDate(record.createdAt)}</Text>
+                <Text>{record.weight} kg</Text>
+                {diff && (
+                  <Text style={{ color: isLoss ? 'green' : 'red' }}>
+                    {parseFloat(diff) > 0 ? '+' : ''}
+                    {diff} kg
+                  </Text>
+                )}
+              </View>
+            );
+          })
         )}
       </View>
 
       <View style={styles.card}>
-            <Image
-              source={{ uri: 'https://cdn-icons-png.flaticon.com/128/18265/18265431.png' }} 
-                style={styles.icon} />
-      <View style={[styles.section, { marginTop: 24 }]}>
-        <Text style={styles.sectionTitle}>Estadísticas</Text></View>
+        
+        <View style={[styles.section, { marginTop: 24 }]}>
+          <Text style={styles.sectionTitle}> <Image
+          source={{ uri: 'https://cdn-icons-png.flaticon.com/128/18265/18265431.png' }} 
+          style={styles.icon} 
+        /> Estadísticas</Text>
+        </View>
         <View style={styles.row}>
           <Text style={styles.mealCalories}>Peso inicial:</Text>
-          <Text style={styles.mealName}>{sortedRecords[0]?.weight ?? user.weight} kg</Text>
+          <Text style={styles.mealName}>
+            {progressRecords.length > 0 ? progressRecords[progressRecords.length - 1].weight : userData.weight} kg
+          </Text>
         </View>
         <View style={styles.row}>
           <Text style={styles.mealCalories}>Peso actual:</Text>
-          <Text style={styles.mealName}>{user.weight} kg</Text>
+          <Text style={styles.mealName}>{userData.weight} kg</Text>
         </View>
         <View style={styles.row}>
           <Text style={styles.mealCalories}>Objetivo de peso:</Text>
-          <Text style={styles.mealName}>{user.targetWeight} kg</Text>
+          <Text style={styles.mealName}>{userData.targetWeight} kg</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.mealCalories}>Altura:</Text>
+          <Text style={styles.mealName}>{userData.height} m</Text>
         </View>
         <View style={styles.row}>
           <Text style={styles.mealCalories}>IMC:</Text>
-          <Text style={styles.mealName}>{user.bmi.toFixed(1)}</Text>
+          <Text style={styles.mealName}>{userData.bmi.toFixed(1)}</Text>
         </View>
         <View style={styles.row}>
           <Text style={styles.mealCalories}>Categoría:</Text>
-          <Text style={styles.mealName}>{user.bmiCategory}</Text>
+          <Text style={styles.mealName}>{userData.bmiCategory}</Text>
         </View>
       </View>
     </ScrollView>

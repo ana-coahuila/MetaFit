@@ -7,6 +7,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20   ,
   },
+ logoImage: {
+  width: 100,
+  height: 100,
+  borderRadius: 50, 
+},
   card: {
     width: '100%',
     maxWidth: 400,
@@ -18,7 +23,6 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
     padding: 24,
-    backgroundImage:'',
   },
   iconContainer: {
     alignItems: 'center',

@@ -244,6 +244,12 @@ export default StyleSheet.create({
     alignItems: 'center',
     padding: 24,
   },
+   noExercisesText: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    padding: 20,
+  },
   emptyText: {
     fontSize: 16,
     color: '#6B7280',

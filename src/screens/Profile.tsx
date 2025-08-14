@@ -120,7 +120,7 @@ const Profile: React.FC = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      navigation.navigate('Login'); 
+      navigation.navigate('Login' as never); 
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
     }

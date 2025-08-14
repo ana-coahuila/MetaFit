@@ -54,7 +54,7 @@ export default StyleSheet.create({
     borderRadius: 6,
   },
   button: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#2ff062ff',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
@@ -62,7 +62,7 @@ export default StyleSheet.create({
     marginBottom: 16,
   },
   buttonText: {
-    color: '#ffffff',
+    color: '#1cf82bff',
     fontWeight: '600',
     fontSize: 16,
   },
@@ -89,7 +89,7 @@ export default StyleSheet.create({
     padding: 10,
   },
   saveBtn: {
-    backgroundColor: '#10b981',
+    backgroundColor: '#38d315ff',
     padding: 10,
     borderRadius: 6,
     alignItems: 'center',
@@ -111,7 +111,7 @@ export default StyleSheet.create({
     height: 53,
     alignItems: 'center',
     marginBottom: 24,
-    backgroundColor: '#A0DFF7',
+    backgroundColor: '#aff7a0ff',
     padding: 16,
     borderRadius: 50,
     alignSelf: 'flex-end'

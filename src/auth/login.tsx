@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, Alert, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from "@react-navigation/native";
 import Input from '../components/Input';
 import Button from '../components/Button';
-import { Activity } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import styles from '../styles/AuthStyles';
 import { useAuth } from '../context/AuthContext';
@@ -48,7 +47,6 @@ const Login = () => {
         }]
       );
     } catch (error: any) {
-      // Si el error es 401, mostrar mensaje específico
       if (error.response?.status === 401) {
         setLocalError("Credenciales inválidas. Por favor intente nuevamente.");
       } else {
@@ -67,12 +65,14 @@ const Login = () => {
       style={styles.container}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}>
-      
+
       <View style={styles.card}>
         <View style={styles.iconContainer}>
-          <View style={styles.iconBackground}>
-            <Activity size={40} color="#FFFFFF" />
-          </View>
+          <Image
+            source={require('../../assets/images/login.jpg')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
         </View>
 
         <Text style={styles.title}>Bienvenido a METAFIT</Text>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, View, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, ViewStyle } from 'react-native';
 
 interface ButtonProps {
   children: React.ReactNode;
@@ -45,9 +45,9 @@ const Button: React.FC<ButtonProps> = ({
         getButtonStyle(),
         fullWidth && styles.fullWidth,
         disabled && styles.disabled,
+        { pointerEvents: disabled ? 'none' : 'auto' } as ViewStyle, // aquí lo pasamos a style
       ]}
       onPress={onPress}
-      disabled={disabled}
       activeOpacity={0.7}
     >
       {typeof children === 'string' ? (

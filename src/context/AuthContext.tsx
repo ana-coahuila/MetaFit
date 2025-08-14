@@ -3,7 +3,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import {User} from "../types/types";
 
-
 const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
 interface AuthContextType {

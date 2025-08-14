@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, Pressable, ScrollView, TouchableOpacity, Alert,Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Input from '../components/Input';
 import Button from '../components/Button';
-import { Activity } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import styles from '../styles/AuthStyles';
@@ -94,7 +93,7 @@ const Register: React.FC = () => {
         [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('Login'),
+            onPress: () => navigation.navigate('Login' as never ),
           },
         ]
       );
@@ -114,13 +113,14 @@ const Register: React.FC = () => {
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
     >
-      <View style={styles.card}>
-        <View>
-          <View style={styles.iconContainer}>
-            <View style={styles.iconBackground}>
-              <Activity size={40} color="#1f2937" />
-            </View>
-          </View>
+        <View style={styles.card}>
+        <View style={styles.iconContainer}>
+          <Image
+            source={require('../../assets/images/registro.jpg')} 
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
+        </View>
 
           <Text style={styles.title}>
             {step === 1 ? 'Crear una cuenta' : 'Información adicional'}
@@ -258,7 +258,6 @@ const Register: React.FC = () => {
             </Text>
           </View>
         </View>
-      </View>
     </LinearGradient>
   );
 };
